@@ -17,7 +17,10 @@ node_modules
 dist
 dist-ssr
 *.local
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> e392e5fab30ba2dbd59534e6e4e954a3d8dfc686
 frontend/node_modules
 frontend/.env
 frontend/dist
@@ -37,4 +40,8 @@ node_modules
 *.ntvs*
 *.njsproj
 *.sln
+<<<<<<< HEAD
 *.sw?
+=======
+*.sw?
+>>>>>>> e392e5fab30ba2dbd59534e6e4e954a3d8dfc686
