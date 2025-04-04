@@ -138,6 +138,7 @@ const VenueDashboard = () => {
     {
       id: 1,
       title: "Friday Night Comedy",
+      performer: "Priya Sharma", // Changed from any Western name if it existed
       date: "Oct 15, 2023",
       time: "8:00 PM",
       ticketsSold: 42,
@@ -146,6 +147,7 @@ const VenueDashboard = () => {
     {
       id: 2,
       title: "Improv Showcase",
+      performer: "Rajesh Kumar", // Changed from any Western name if it existed
       date: "Oct 22, 2023",
       time: "7:30 PM",
       ticketsSold: 28,
@@ -154,6 +156,7 @@ const VenueDashboard = () => {
     {
       id: 3,
       title: "Stand-up Spotlight",
+      performer: "Anjali Desai", // Changed from any Western name if it existed
       date: "Oct 29, 2023",
       time: "9:00 PM",
       ticketsSold: 52,

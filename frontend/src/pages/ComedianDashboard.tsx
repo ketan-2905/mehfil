@@ -41,8 +41,8 @@ const ComedianDashboard = () => {
   const upcomingShows = [
     {
       id: 1,
-      venue: "The Laughing Pint",
-      location: "San Francisco, CA",
+      venue: "Hasee Adda", // Changed from "The Laughing Pint"
+      location: "Mumbai", // Changed from "San Francisco, CA"
       date: "Oct 15, 2023",
       time: "8:00 PM",
       status: "confirmed",

@@ -22,7 +22,7 @@ const AudienceDashboard = () => {
     {
       id: 1,
       event: "Comedy Night Extravaganza",
-      venue: "The Laughing Pint",
+      venue: "Hasee Adda", // Changed from "The Laughing Pint"
       date: "Oct 15, 2023",
       time: "8:00 PM",
       ticketCount: 2,
