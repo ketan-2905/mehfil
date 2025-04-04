@@ -13,6 +13,7 @@ import { useDataStore } from "@/services/DataService";
 const PerformerDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const showRequests = useDataStore(state => state.showRequests);
+  const venues = useDataStore(state => state.venues); // Get venues from data store
   
   const myRequests = showRequests.filter(req => req.performerId === 1); // Mock performer ID
 
@@ -238,101 +239,103 @@ const PerformerDashboard = () => {
               </AnimatedElement>
             </div>
             
-            {/* Side Content */}
-            <div>
-              <AnimatedElement animation="slide-up" delay={700}>
-                <GlassCard className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold">Venue Opportunities</h2>
-                    <Link to="/opportunities" className="text-sm text-comedy-purple hover:underline flex items-center">
-                      View All <ChevronRight size={16} />
-                    </Link>
-                  </div>
-                  
-                  {venueOpportunities.length > 0 ? (
-                    <div className="divide-y divide-white/10">
-                      {venueOpportunities.map((opportunity) => (
-                        <div key={opportunity.id} className="py-4">
-                          <h3 className="font-medium">{opportunity.name}</h3>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            {opportunity.location}
-                          </p>
-                          <div className="flex justify-between text-sm mb-3">
-                            <span className="text-muted-foreground">
-                              <Clock size={14} className="inline mr-1" />
-                              {opportunity.date}
-                            </span>
-                            <span className="text-comedy-orange">
-                              {opportunity.compensation}
-                            </span>
-                          </div>
-                          <Button size="sm" className="w-full">Apply</Button>
+            {/* Venue Opportunities */}
+            <AnimatedElement animation="slide-up" delay={700}>
+              <GlassCard className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">Venue Opportunities</h2>
+                  <Link to="/opportunities" className="text-sm text-comedy-purple hover:underline flex items-center">
+                    View All <ChevronRight size={16} />
+                  </Link>
+                </div>
+                
+                {venues.length > 0 ? (
+                  <div className="divide-y divide-white/10">
+                    {venues.map((venue) => (
+                      <div key={venue.id} className="py-4">
+                        <h3 className="font-medium">{venue.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {venue.location}
+                        </p>
+                        <div className="flex justify-between text-sm mb-3">
+                          <span className="text-muted-foreground">
+                            <Clock size={14} className="inline mr-1" />
+                            {new Date(Date.now() + venue.id * 86400000).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                          <span className="text-comedy-orange">
+                            ${Math.floor(200 + Math.random() * 200)}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No opportunities found</p>
-                    </div>
-                  )}
-                  
-                  <div className="mt-6">
-                    <Button variant="outline" className="w-full">
-                      <Search size={16} className="mr-2" />
-                      Find More Venues
+                        <Button size="sm" className="w-full">Apply</Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No opportunities found</p>
+                  </div>
+                )}
+                
+                <div className="mt-6">
+                  <Button variant="outline" className="w-full">
+                    <Search size={16} className="mr-2" />
+                    Find More Venues
+                  </Button>
+                </div>
+              </GlassCard>
+            </AnimatedElement>
+            
+            <AnimatedElement animation="slide-up" delay={800} className="mt-6">
+              <GlassCard className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold">My Show Requests</h2>
+                </div>
+                
+                {myRequests.length > 0 ? (
+                  <div className="divide-y divide-white/10">
+                    {myRequests.map((request) => (
+                      <div key={request.id} className="py-4">
+                        <h3 className="font-medium">{request.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {request.venueName}
+                        </p>
+                        <div className="flex justify-between text-sm mb-3">
+                          <span className="text-muted-foreground">
+                            <Clock size={14} className="inline mr-1" />
+                            {request.date}, {request.time}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs ${
+                            request.status === 'approved' 
+                              ? 'bg-green-900/30 text-green-400' 
+                              : request.status === 'rejected'
+                              ? 'bg-red-900/30 text-red-400'
+                              : 'bg-yellow-900/30 text-yellow-400'
+                          }`}>
+                            {request.status === 'approved' 
+                              ? 'Approved' 
+                              : request.status === 'rejected'
+                              ? 'Rejected'
+                              : 'Pending'}
+                          </span>
+                        </div>
+                        <Button size="sm" variant="outline" className="w-full">View Details</Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No requests submitted yet</p>
+                    <Button className="mt-4" onClick={() => document.querySelector<HTMLButtonElement>('[data-testid="submit-show-request"]')?.click()}>
+                      Submit Your First Request
                     </Button>
                   </div>
-                </GlassCard>
-              </AnimatedElement>
-              
-              <AnimatedElement animation="slide-up" delay={800} className="mt-6">
-                <GlassCard className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold">My Show Requests</h2>
-                  </div>
-                  
-                  {myRequests.length > 0 ? (
-                    <div className="divide-y divide-white/10">
-                      {myRequests.map((request) => (
-                        <div key={request.id} className="py-4">
-                          <h3 className="font-medium">{request.title}</h3>
-                          <p className="text-sm text-muted-foreground mb-1">
-                            {request.venueName}
-                          </p>
-                          <div className="flex justify-between text-sm mb-3">
-                            <span className="text-muted-foreground">
-                              <Clock size={14} className="inline mr-1" />
-                              {request.date}, {request.time}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs ${
-                              request.status === 'approved' 
-                                ? 'bg-green-900/30 text-green-400' 
-                                : request.status === 'rejected'
-                                ? 'bg-red-900/30 text-red-400'
-                                : 'bg-yellow-900/30 text-yellow-400'
-                            }`}>
-                              {request.status === 'approved' 
-                                ? 'Approved' 
-                                : request.status === 'rejected'
-                                ? 'Rejected'
-                                : 'Pending'}
-                            </span>
-                          </div>
-                          <Button size="sm" variant="outline" className="w-full">View Details</Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No requests submitted yet</p>
-                      <Button className="mt-4" onClick={() => document.querySelector<HTMLButtonElement>('[data-testid="submit-show-request"]')?.click()}>
-                        Submit Your First Request
-                      </Button>
-                    </div>
-                  )}
-                </GlassCard>
-              </AnimatedElement>
-            </div>
+                )}
+              </GlassCard>
+            </AnimatedElement>
           </div>
         </div>
       </div>

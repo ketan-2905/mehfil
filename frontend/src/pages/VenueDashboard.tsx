@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Calendar, Users, DollarSign, Building2, Plus, ChevronRight, Search } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Calendar, Users, DollarSign, Building2, Plus, ChevronRight, Search, X, Edit, Clock, MapPin } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlassCard from "@/components/ui-components/GlassCard";
@@ -11,6 +11,19 @@ import { toast } from "sonner";
 
 const VenueDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showEventDetails, setShowEventDetails] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showAddVenueModal, setShowAddVenueModal] = useState(false);
+  const [venueForm, setVenueForm] = useState({
+    name: "",
+    location: "",
+    capacity: "",
+    description: "",
+    amenities: "",
+    contactEmail: "",
+    contactPhone: ""
+  });
+  const navigate = useNavigate();
   const showRequests = useDataStore(state => state.showRequests);
   const updateRequestStatus = useDataStore(state => state.updateRequestStatus);
   
@@ -27,6 +40,71 @@ const VenueDashboard = () => {
   const handleDecline = (requestId: number) => {
     updateRequestStatus(requestId, 'rejected');
     toast.error("Request declined");
+  };
+
+  const handleManageEvent = (event: any) => {
+    setSelectedEvent(event);
+    setShowEventDetails(true);
+  };
+
+  const closeEventDetails = () => {
+    setShowEventDetails(false);
+    setSelectedEvent(null);
+  };
+  
+  const handleAddVenue = () => {
+    setShowAddVenueModal(true);
+  };
+
+  const closeAddVenueModal = () => {
+    setShowAddVenueModal(false);
+    setVenueForm({
+      name: "",
+      location: "",
+      capacity: "",
+      description: "",
+      amenities: "",
+      contactEmail: "",
+      contactPhone: ""
+    });
+  };
+
+  const handleVenueFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setVenueForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleVenueSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your backend
+    console.log("Venue form submitted:", venueForm);
+    
+    // Add the new venue to the data store so it appears in performer dashboard
+    const newVenue = {
+      id: Date.now(), // Generate a temporary ID (in a real app, this would come from the backend)
+      name: venueForm.name,
+      location: venueForm.location,
+      capacity: parseInt(venueForm.capacity) || 0,
+      description: venueForm.description,
+      amenities: venueForm.amenities.split(',').map(item => item.trim()),
+      contactEmail: venueForm.contactEmail,
+      contactPhone: venueForm.contactPhone,
+      rating: 0,
+      reviewCount: 0,
+      image: "/images/venues/default-venue.jpg", // Default image
+      isAvailable: true
+    };
+    
+    // Add to the data store - assuming you have an addVenue method in your data store
+    useDataStore.getState().addVenue(newVenue);
+    
+    toast.success("Venue added successfully!");
+    closeAddVenueModal();
+    
+    // In a real app, you might refresh the venues list or navigate to the new venue
   };
 
   const stats = [
@@ -94,13 +172,20 @@ const VenueDashboard = () => {
               <h1 className="text-3xl font-bold mb-4 md:mb-0">Venue Manager Dashboard</h1>
             </AnimatedElement>
             <AnimatedElement animation="slide-up" delay={200} className="flex gap-3">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/artists')}
+              >
                 <Search size={16} className="mr-2" />
                 Find Comedians
               </Button>
-              <Button size="sm">
+              <Button 
+                size="sm"
+                onClick={handleAddVenue}
+              >
                 <Plus size={16} className="mr-2" />
-                Create Event
+                Add Venue
               </Button>
             </AnimatedElement>
           </div>
@@ -168,7 +253,13 @@ const VenueDashboard = () => {
                             <span className="text-comedy-red">{show.ticketsSold}</span>
                             <span className="text-muted-foreground">/{show.capacity} tickets</span>
                           </div>
-                          <Button variant="outline" size="sm">Manage</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleManageEvent(show)}
+                          >
+                            Manage
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -261,6 +352,288 @@ const VenueDashboard = () => {
           </div>
         </div>
       </div>
+      
+      {/* Event Details Modal */}
+      {showEventDetails && selectedEvent && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-comedy-darker border border-white/10 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedEvent.title}</h2>
+                  <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                    <Calendar size={16} />
+                    <span>{selectedEvent.date}</span>
+                    <Clock size={16} className="ml-2" />
+                    <span>{selectedEvent.time}</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={closeEventDetails}
+                  className="text-muted-foreground hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Event Details</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm text-muted-foreground">Ticket Sales</h4>
+                      <p className="text-xl font-semibold">
+                        <span className="text-comedy-red">{selectedEvent.ticketsSold}</span>
+                        <span className="text-muted-foreground">/{selectedEvent.capacity} tickets sold</span>
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm text-muted-foreground">Revenue</h4>
+                      <p className="text-xl font-semibold">${selectedEvent.ticketsSold * 25}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm text-muted-foreground">Status</h4>
+                      <div className="bg-green-950/20 text-green-400 px-3 py-1 rounded-full text-sm inline-block">
+                        Active
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-8">
+                    <h3 className="text-lg font-semibold mb-4">Actions</h3>
+                    <div className="space-y-3">
+                      <Button variant="outline" className="w-full justify-start">
+                        <Edit size={16} className="mr-2" />
+                        Edit Event Details
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        <Users size={16} className="mr-2" />
+                        Manage Attendees
+                      </Button>
+                      <Button variant="outline" className="w-full justify-start">
+                        <DollarSign size={16} className="mr-2" />
+                        Adjust Pricing
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Seating Chart</h3>
+                  <div className="bg-comedy-dark rounded-lg p-4">
+                    <div className="text-center mb-4 pb-2 border-b border-white/10">
+                      <div className="text-sm text-muted-foreground">First Class ₹145.00</div>
+                    </div>
+                    
+                    {/* Seating chart visualization - First Class */}
+                    <div className="flex flex-col items-center mb-6">
+                      {Array.from({ length: 5 }).map((_, rowIndex) => (
+                        <div key={`row-first-${rowIndex}`} className="flex gap-2 mb-2">
+                          {Array.from({ length: 10 }).map((_, seatIndex) => {
+                            const isSold = Math.random() > 0.6;
+                            return (
+                              <div 
+                                key={`seat-first-${rowIndex}-${seatIndex}`}
+                                className={`w-4 h-4 rounded-full ${
+                                  isSold 
+                                    ? 'bg-gray-500' 
+                                    : 'bg-transparent border border-white/30'
+                                }`}
+                              />
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="text-center mb-4 pb-2 border-b border-white/10">
+                      <div className="text-sm text-muted-foreground">Second Class ₹80.00</div>
+                    </div>
+                    
+                    {/* Seating chart visualization - Second Class */}
+                    <div className="flex flex-col items-center mb-6">
+                      {Array.from({ length: 4 }).map((_, rowIndex) => (
+                        <div key={`row-second-${rowIndex}`} className="flex gap-2 mb-2">
+                          {Array.from({ length: 10 }).map((_, seatIndex) => {
+                            const isSold = Math.random() > 0.4;
+                            return (
+                              <div 
+                                key={`seat-second-${rowIndex}-${seatIndex}`}
+                                className={`w-4 h-4 rounded-full ${
+                                  isSold 
+                                    ? 'bg-gray-500' 
+                                    : 'bg-transparent border border-white/30'
+                                }`}
+                              />
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex justify-center items-center gap-6 mt-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                        <span className="text-xs">Sold</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-transparent border border-white/30 rounded-full"></div>
+                        <span className="text-xs">Available</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center mt-6 pt-4 border-t border-white/10">
+                      <div className="text-xs text-muted-foreground">All eyes this way please</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Add Venue Modal */}
+      {showAddVenueModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-comedy-darker border border-white/10 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <h2 className="text-2xl font-bold">Add New Venue</h2>
+                <button 
+                  onClick={closeAddVenueModal}
+                  className="text-muted-foreground hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <form onSubmit={handleVenueSubmit}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium mb-1">
+                      Venue Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={venueForm.name}
+                      onChange={handleVenueFormChange}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-red"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="location" className="block text-sm font-medium mb-1">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      id="location"
+                      name="location"
+                      value={venueForm.location}
+                      onChange={handleVenueFormChange}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-red"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="capacity" className="block text-sm font-medium mb-1">
+                      Capacity
+                    </label>
+                    <input
+                      type="number"
+                      id="capacity"
+                      name="capacity"
+                      value={venueForm.capacity}
+                      onChange={handleVenueFormChange}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-red"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={venueForm.description}
+                      onChange={handleVenueFormChange}
+                      rows={3}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-red"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="amenities" className="block text-sm font-medium mb-1">
+                      Amenities
+                    </label>
+                    <input
+                      type="text"
+                      id="amenities"
+                      name="amenities"
+                      value={venueForm.amenities}
+                      onChange={handleVenueFormChange}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-red"
+                      placeholder="e.g. Parking, Food, Bar, Wheelchair Access"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="contactEmail" className="block text-sm font-medium mb-1">
+                        Contact Email
+                      </label>
+                      <input
+                        type="email"
+                        id="contactEmail"
+                        name="contactEmail"
+                        value={venueForm.contactEmail}
+                        onChange={handleVenueFormChange}
+                        className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-red"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="contactPhone" className="block text-sm font-medium mb-1">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        id="contactPhone"
+                        name="contactPhone"
+                        value={venueForm.contactPhone}
+                        onChange={handleVenueFormChange}
+                        className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-red"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-8">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={closeAddVenueModal}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    <Plus size={16} className="mr-2" />
+                    Add Venue
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
       
       <Footer />
     </div>

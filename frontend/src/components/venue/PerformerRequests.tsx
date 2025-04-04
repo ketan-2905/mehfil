@@ -71,10 +71,12 @@ const PerformerRequests = () => {
         )}
         
         <div className="mt-6">
-          <Button variant="outline" className="w-full">
-            <Search size={16} className="mr-2" />
-            Find Comedians
-          </Button>
+          <Link to="/artists">
+            <Button variant="outline" className="w-full">
+              <Search size={16} className="mr-2" />
+              Find Comedians
+            </Button>
+          </Link>
         </div>
       </GlassCard>
     </AnimatedElement>

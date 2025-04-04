@@ -35,13 +35,30 @@ export type ShowRequest = {
   createdAt: string;
 }
 
+export type Venue = {
+  id: number;
+  name: string;
+  location: string;
+  capacity: number;
+  description: string;
+  amenities: string[];
+  contactEmail?: string;
+  contactPhone?: string;
+  rating?: number;
+  reviewCount?: number;
+  image?: string;
+  isAvailable: boolean;
+}
+
 // Define the store state
 interface DataState {
   comedians: Comedian[];
   showRequests: ShowRequest[];
+  venues: Venue[];
   addShowRequest: (request: Omit<ShowRequest, 'id' | 'createdAt'>) => void;
   updateRequestStatus: (id: number, status: 'approved' | 'rejected') => void;
   rateComedian: (comedianId: number, rating: number, review?: string) => void;
+  addVenue: (venue: Omit<Venue, 'id'>) => void;
 }
 
 // Sample data for comedians
@@ -138,10 +155,71 @@ const sampleShowRequests: ShowRequest[] = [
   }
 ];
 
+// Sample data for venues
+const sampleVenues: Venue[] = [
+  {
+    id: 1,
+    name: "The Laughing Pint",
+    location: "123 Comedy Lane, Mumbai",
+    capacity: 150,
+    description: "A cozy venue known for hosting the best stand-up talent in the city",
+    amenities: ["Full Bar", "Food Service", "Parking"],
+    contactEmail: "info@laughingpint.com",
+    contactPhone: "+91 98765 43210",
+    rating: 4.8,
+    reviewCount: 120,
+    image: "/images/venues/laughing-pint.jpg",
+    isAvailable: true
+  },
+  {
+    id: 2,
+    name: "Comedy Cellar",
+    location: "456 Joke Street, Delhi",
+    capacity: 200,
+    description: "Underground comedy club with an intimate atmosphere",
+    amenities: ["Full Bar", "VIP Seating", "Wheelchair Access"],
+    contactEmail: "bookings@comedycellar.com",
+    contactPhone: "+91 98765 12345",
+    rating: 4.6,
+    reviewCount: 85,
+    image: "/images/venues/comedy-cellar.jpg",
+    isAvailable: true
+  },
+  {
+    id: 3,
+    name: "The Stand",
+    location: "Los Angeles, CA",
+    capacity: 180,
+    description: "Premier comedy venue featuring top talent",
+    amenities: ["Full Bar", "Food Service", "VIP Seating"],
+    contactEmail: "bookings@thestand.com",
+    contactPhone: "+1 323-555-1234",
+    rating: 4.7,
+    reviewCount: 95,
+    image: "/images/venues/the-stand.jpg",
+    isAvailable: true
+  },
+  {
+    id: 4,
+    name: "Laugh Factory",
+    location: "Miami, FL",
+    capacity: 220,
+    description: "Historic comedy club with a vibrant atmosphere",
+    amenities: ["Full Bar", "Food Service", "Merchandise"],
+    contactEmail: "info@laughfactory.com",
+    contactPhone: "+1 305-555-6789",
+    rating: 4.9,
+    reviewCount: 150,
+    image: "/images/venues/laugh-factory.jpg",
+    isAvailable: true
+  }
+];
+
 // Create the store
 export const useDataStore = create<DataState>((set) => ({
   comedians: sampleComedians,
   showRequests: sampleShowRequests,
+  venues: sampleVenues,
   
   addShowRequest: (request) => set((state) => {
     const newRequest: ShowRequest = {
@@ -185,6 +263,18 @@ export const useDataStore = create<DataState>((set) => ({
     });
     
     return { comedians: updatedComedians };
+  }),
+  
+  addVenue: (venue) => set((state) => {
+    const newVenue: Venue = {
+      ...venue,
+      id: state.venues.length + 1,
+      isAvailable: true,
+      rating: 0,
+      reviewCount: 0,
+      image: venue.image || "/images/venues/default-venue.jpg"
+    };
+    return { venues: [...state.venues, newVenue] };
   })
 }));
 
