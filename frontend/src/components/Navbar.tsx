@@ -41,7 +41,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <AnimatedElement animation="fade-in" delay={300}>
           <Link to="/" className="flex items-center gap-2">
-            <Mic size={28} className="text-comedy-red hover-glow" />
+            <img src="/vena.png" alt="Vena logo" className="h-10"/>
             <span className="text-2xl font-bold">Mehfil</span>
           </Link>
         </AnimatedElement>
