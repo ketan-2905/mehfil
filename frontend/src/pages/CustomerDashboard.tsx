@@ -22,22 +22,22 @@ const CustomerDashboard = () => {
 
   const filterOptions = {
     dates: ["Today", "This Weekend", "Next Week", "This Month"],
-    locations: ["San Francisco", "New York", "Chicago", "Los Angeles", "Miami"],
+    locations: ["Mumbai", "Delhi", "Bangalore", "Kolkata", "Chennai"], // Updated locations
     genres: ["Stand-up", "Improv", "Sketch", "Musical Comedy", "Alternative"],
-    artists: ["Sarah Johnson", "Mike Rodriguez", "Lisa Wong", "David Chen"]
+    artists: ["Priya Sharma", "Rajesh Kumar", "Anjali Desai", "Vikram Singh"] // Updated artist names
   };
 
   const upcomingEvents = [
     {
       id: 1,
       title: "Late Night Laughs",
-      venue: "The Laughing Pint",
-      location: "San Francisco, CA",
+      venue: "Hasee Adda", // Changed from "The Laughing Pint"
+      location: "Mumbai", // Changed from "San Francisco, CA"
       date: "Nov 15, 2023",
       time: "9:30 PM",
-      price: "$25",
+      price: "₹1500", // Changed to Rupees
       genre: "Stand-up",
-      artist: "Sarah Johnson",
+      artist: "Priya Sharma", // Updated artist name
       rating: "4.8",
       image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
     },

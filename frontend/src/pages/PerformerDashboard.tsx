@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, Users, DollarSign, Star, Plus, ChevronRight, Search, Upload, Clock, Mic, Image, Video, FileText } from "lucide-react";
+import { Calendar, Users, DollarSign, Star, Plus, ChevronRight, Search, Upload, Clock, Mic, Image, Video, FileText, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GlassCard from "@/components/ui-components/GlassCard";
@@ -9,13 +9,120 @@ import Button from "@/components/ui-components/Button";
 import AnimatedElement from "@/components/ui-components/AnimatedElement";
 import SubmitShowRequest from "@/components/SubmitShowRequest";
 import { useDataStore } from "@/services/DataService";
+import { toast } from "sonner";
 
 const PerformerDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const showRequests = useDataStore(state => state.showRequests);
-  const venues = useDataStore(state => state.venues); // Get venues from data store
+  const venues = useDataStore(state => state.venues);
+  const applyToVenue = useDataStore(state => state.applyToVenue);
+  
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [selectedVenue, setSelectedVenue] = useState<any>(null);
+  const [applicationForm, setApplicationForm] = useState({
+    title: "",
+    description: "",
+    date: "",
+    time: ""
+  });
+  
+  // Add state for propose show modal
+  const [showProposeModal, setShowProposeModal] = useState(false);
+  const [proposeForm, setProposeForm] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    venueId: 0
+  });
   
   const myRequests = showRequests.filter(req => req.performerId === 1); // Mock performer ID
+
+  // Handle venue application
+  const handleApply = (venue: any) => {
+    setSelectedVenue(venue);
+    setShowApplyModal(true);
+  };
+  
+  const closeApplyModal = () => {
+    setShowApplyModal(false);
+    setSelectedVenue(null);
+    setApplicationForm({
+      title: "",
+      description: "",
+      date: "",
+      time: ""
+    });
+  };
+  
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setApplicationForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Add handler for propose form changes
+  const handleProposeFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setProposeForm(prev => ({
+      ...prev,
+      [name]: name === 'venueId' ? parseInt(value) : value
+    }));
+  };
+  
+  // Add handler for propose form submission
+  // Add this to the handleProposeSubmit function
+  const handleProposeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    console.log("Submitting proposal with venue ID:", proposeForm.venueId);
+    
+    // Use the applyToVenue function from your data store
+    applyToVenue(
+      proposeForm.venueId,
+      1, // Replace with actual performer ID from auth context in a real app
+      proposeForm.title,
+      proposeForm.description,
+      proposeForm.date,
+      proposeForm.time
+    );
+    
+    // Close modal and reset form
+    setShowProposeModal(false);
+    setProposeForm({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      venueId: 0
+    });
+    
+    // Show success message
+    toast.success("Show proposal submitted successfully!");
+    
+    // Log all requests after submission
+    console.log("All show requests after submission:", showRequests);
+  };
+  
+  const handleSubmitApplication = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedVenue) return;
+    
+    applyToVenue(
+      selectedVenue.id,
+      1, // Mock performer ID
+      applicationForm.title,
+      applicationForm.description,
+      applicationForm.date,
+      applicationForm.time
+    );
+    
+    toast.success(`Application submitted to ${selectedVenue.name}!`);
+    closeApplyModal();
+  };
 
   const stats = [
     {
@@ -110,7 +217,7 @@ const PerformerDashboard = () => {
                 <Upload size={16} className="mr-2" />
                 Upload Media
               </Button>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowProposeModal(true)}>
                 <Plus size={16} className="mr-2" />
                 Propose Show
               </Button>
@@ -155,7 +262,7 @@ const PerformerDashboard = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Upcoming Shows */}
+            {/* Upcoming Shows and Media Gallery - Left Column */}
             <div className="lg:col-span-2">
               <AnimatedElement animation="slide-up" delay={500}>
                 <GlassCard className="p-6">
@@ -168,29 +275,27 @@ const PerformerDashboard = () => {
                   
                   <div className="divide-y divide-white/10">
                     {upcomingShows.map((show) => (
-                      <div key={show.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <h3 className="font-medium">{show.venue}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {show.location} • {show.date} • {show.time}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span className={`rounded-lg px-3 py-1 text-sm ${
+                      <div key={show.id} className="py-4">
+                        <h3 className="font-medium">{show.venue}</h3>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {show.location}
+                        </p>
+                        <div className="flex justify-between text-sm mb-3">
+                          <span className="text-muted-foreground">
+                            <Clock size={14} className="inline mr-1" />
+                            {show.date}, {show.time}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs ${
                             show.status === 'confirmed' 
                               ? 'bg-green-900/30 text-green-400' 
                               : 'bg-yellow-900/30 text-yellow-400'
                           }`}>
                             {show.status === 'confirmed' ? 'Confirmed' : 'Pending'}
                           </span>
-                          <Button variant="outline" size="sm">Details</Button>
                         </div>
+                        <Button size="sm" variant="outline" className="w-full">View Details</Button>
                       </div>
                     ))}
-                  </div>
-                  
-                  <div className="mt-6">
-                    <SubmitShowRequest />
                   </div>
                 </GlassCard>
               </AnimatedElement>
@@ -239,106 +344,337 @@ const PerformerDashboard = () => {
               </AnimatedElement>
             </div>
             
-            {/* Venue Opportunities */}
-            <AnimatedElement animation="slide-up" delay={700}>
-              <GlassCard className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">Venue Opportunities</h2>
-                  <Link to="/opportunities" className="text-sm text-comedy-purple hover:underline flex items-center">
-                    View All <ChevronRight size={16} />
-                  </Link>
-                </div>
-                
-                {venues.length > 0 ? (
-                  <div className="divide-y divide-white/10">
-                    {venues.map((venue) => (
-                      <div key={venue.id} className="py-4">
-                        <h3 className="font-medium">{venue.name}</h3>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {venue.location}
-                        </p>
-                        <div className="flex justify-between text-sm mb-3">
-                          <span className="text-muted-foreground">
-                            <Clock size={14} className="inline mr-1" />
-                            {new Date(Date.now() + venue.id * 86400000).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </span>
-                          <span className="text-comedy-orange">
-                            ${Math.floor(200 + Math.random() * 200)}
-                          </span>
+            {/* Right Column - My Show Requests and Venue Opportunities */}
+            <div>
+              {/* My Show Requests */}
+              <AnimatedElement animation="slide-up" delay={600}>
+                <GlassCard className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold">My Show Requests</h2>
+                  </div>
+                  
+                  {myRequests.length > 0 ? (
+                    <div className="divide-y divide-white/10">
+                      {myRequests.map((request) => (
+                        <div key={request.id} className="py-4">
+                          <h3 className="font-medium">{request.title}</h3>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            {request.venueName}
+                          </p>
+                          <div className="flex justify-between text-sm mb-3">
+                            <span className="text-muted-foreground">
+                              <Clock size={14} className="inline mr-1" />
+                              {request.date}, {request.time}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs ${
+                              request.status === 'approved' 
+                                ? 'bg-green-900/30 text-green-400' 
+                                : request.status === 'rejected'
+                                ? 'bg-red-900/30 text-red-400'
+                                : 'bg-yellow-900/30 text-yellow-400'
+                            }`}>
+                              {request.status === 'approved' 
+                                ? 'Approved' 
+                                : request.status === 'rejected'
+                                ? 'Rejected'
+                                : 'Pending'}
+                            </span>
+                          </div>
+                          <Button size="sm" variant="outline" className="w-full">View Details</Button>
                         </div>
-                        <Button size="sm" className="w-full">Apply</Button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No requests submitted yet</p>
+                      <Button className="mt-4" onClick={() => document.querySelector<HTMLButtonElement>('[data-testid="submit-show-request"]')?.click()}>
+                        Submit Your First Request
+                      </Button>
+                    </div>
+                  )}
+                </GlassCard>
+              </AnimatedElement>
+              
+              {/* Venue Opportunities */}
+              <AnimatedElement animation="slide-up" delay={700} className="mt-6">
+                <GlassCard className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold">Venue Opportunities</h2>
+                    <Link to="/opportunities" className="text-sm text-comedy-purple hover:underline flex items-center">
+                      View All <ChevronRight size={16} />
+                    </Link>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No opportunities found</p>
-                  </div>
-                )}
-                
-                <div className="mt-6">
-                  <Button variant="outline" className="w-full">
-                    <Search size={16} className="mr-2" />
-                    Find More Venues
-                  </Button>
-                </div>
-              </GlassCard>
-            </AnimatedElement>
-            
-            <AnimatedElement animation="slide-up" delay={800} className="mt-6">
-              <GlassCard className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">My Show Requests</h2>
-                </div>
-                
-                {myRequests.length > 0 ? (
-                  <div className="divide-y divide-white/10">
-                    {myRequests.map((request) => (
-                      <div key={request.id} className="py-4">
-                        <h3 className="font-medium">{request.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {request.venueName}
-                        </p>
-                        <div className="flex justify-between text-sm mb-3">
-                          <span className="text-muted-foreground">
-                            <Clock size={14} className="inline mr-1" />
-                            {request.date}, {request.time}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs ${
-                            request.status === 'approved' 
-                              ? 'bg-green-900/30 text-green-400' 
-                              : request.status === 'rejected'
-                              ? 'bg-red-900/30 text-red-400'
-                              : 'bg-yellow-900/30 text-yellow-400'
-                          }`}>
-                            {request.status === 'approved' 
-                              ? 'Approved' 
-                              : request.status === 'rejected'
-                              ? 'Rejected'
-                              : 'Pending'}
-                          </span>
+                  
+                  {venues.length > 0 ? (
+                    <div className="divide-y divide-white/10">
+                      {venues.map((venue) => (
+                        <div key={venue.id} className="py-4">
+                          <h3 className="font-medium">{venue.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            {venue.location}
+                          </p>
+                          <div className="flex justify-between text-sm mb-3">
+                            <span className="text-muted-foreground">
+                              <Clock size={14} className="inline mr-1" />
+                              {new Date(Date.now() + venue.id * 86400000).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                            <span className="text-comedy-orange">
+                              ${Math.floor(200 + Math.random() * 200)}
+                            </span>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => handleApply(venue)}
+                          >
+                            Apply
+                          </Button>
                         </div>
-                        <Button size="sm" variant="outline" className="w-full">View Details</Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No requests submitted yet</p>
-                    <Button className="mt-4" onClick={() => document.querySelector<HTMLButtonElement>('[data-testid="submit-show-request"]')?.click()}>
-                      Submit Your First Request
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No opportunities found</p>
+                    </div>
+                  )}
+                  
+                  <div className="mt-6">
+                    <Button variant="outline" className="w-full">
+                      <Search size={16} className="mr-2" />
+                      Find More Venues
                     </Button>
                   </div>
-                )}
-              </GlassCard>
-            </AnimatedElement>
+                </GlassCard>
+              </AnimatedElement>
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Application Modal */}
+      {showApplyModal && selectedVenue && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-comedy-darker border border-white/10 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold">Apply to Perform</h2>
+                  <p className="text-muted-foreground">{selectedVenue.name}</p>
+                </div>
+                <button 
+                  onClick={closeApplyModal}
+                  className="text-muted-foreground hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmitApplication}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium mb-1">
+                      Show Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={applicationForm.title}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={applicationForm.description}
+                      onChange={handleFormChange}
+                      rows={3}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="date" className="block text-sm font-medium mb-1">
+                        Preferred Date
+                      </label>
+                      <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        value={applicationForm.date}
+                        onChange={handleFormChange}
+                        className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="time" className="block text-sm font-medium mb-1">
+                        Preferred Time
+                      </label>
+                      <input
+                        type="time"
+                        id="time"
+                        name="time"
+                        value={applicationForm.time}
+                        onChange={handleFormChange}
+                        className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-8">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={closeApplyModal}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Submit Application
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Propose Show Modal */}
+      {showProposeModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-comedy-darker border border-white/10 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold">Propose a Show</h2>
+                  <p className="text-muted-foreground">Fill out the details to submit your proposal</p>
+                </div>
+                <button 
+                  onClick={() => setShowProposeModal(false)}
+                  className="text-muted-foreground hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <form onSubmit={handleProposeSubmit}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="title" className="block text-sm font-medium mb-1">
+                      Show Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={proposeForm.title}
+                      onChange={handleProposeFormChange}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="venueId" className="block text-sm font-medium mb-1">
+                      Venue
+                    </label>
+                    <select
+                      id="venueId"
+                      name="venueId"
+                      value={proposeForm.venueId}
+                      onChange={handleProposeFormChange}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                      required
+                    >
+                      <option value="">Select a venue</option>
+                      {venues.map(venue => (
+                        <option key={venue.id} value={venue.id}>
+                          {venue.name} - {venue.location}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium mb-1">
+                      Show Description
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={proposeForm.description}
+                      onChange={handleProposeFormChange}
+                      rows={3}
+                      className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="date" className="block text-sm font-medium mb-1">
+                        Preferred Date
+                      </label>
+                      <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        value={proposeForm.date}
+                        onChange={handleProposeFormChange}
+                        className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="time" className="block text-sm font-medium mb-1">
+                        Preferred Time
+                      </label>
+                      <input
+                        type="time"
+                        id="time"
+                        name="time"
+                        value={proposeForm.time}
+                        onChange={handleProposeFormChange}
+                        className="w-full px-3 py-2 bg-comedy-dark border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-comedy-purple"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-3 mt-6">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setShowProposeModal(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">Submit Proposal</Button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
       
       <Footer />
     </div>

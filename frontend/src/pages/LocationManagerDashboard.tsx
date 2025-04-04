@@ -41,8 +41,8 @@ const LocationManagerDashboard = () => {
   const venues = [
     {
       id: 1,
-      name: "The Laughing Pint",
-      location: "San Francisco, CA",
+      name: "Hasee Adda", // Changed from "The Laughing Pint"
+      location: "Mumbai", // Changed from "San Francisco, CA"
       capacity: 120,
       activeEvents: 4,
     },
