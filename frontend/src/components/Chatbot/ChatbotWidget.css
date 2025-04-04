@@ -1,0 +1,110 @@
+.chatbot-widget {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;  /* Changed from right to left */
+  z-index: 1000;
+}
+
+.chat-toggle-button {
+  background: #8B5CF6;  /* Changed to purple color */
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.chat-toggle-button:hover {
+  transform: scale(1.05);
+  background: #7C3AED;  /* Darker purple on hover */
+}
+
+.chat-window {
+  width: 300px;
+  height: 400px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 15px rgba(139, 92, 246, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  background: #8B5CF6;  /* Changed to purple */
+  color: white;
+  padding: 12px 15px;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message {
+  padding: 10px 15px;
+  border-radius: 15px;
+  max-width: 85%;
+  font-size: 14px;
+  line-height: 1.4;
+  color: black; /* Added black color for all messages by default */
+}
+
+.message.bot {
+  background: #f0f2f5;
+  align-self: flex-start;
+  color: black; /* Explicitly set bot message color */
+}
+
+.message.user {
+  background: #8B5CF6;
+  color: white; /* Keep user messages white for contrast against purple */
+  align-self: flex-end;
+}
+
+.chat-input {
+  padding: 12px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  outline: none;
+  color: black; /* Added black color for input text */
+}
+
+.chat-input button {
+  padding: 8px 16px;
+  background: #8B5CF6;  /* Changed to purple */
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.chat-input button:hover {
+  background: #7C3AED;  /* Darker purple on hover */
+}
